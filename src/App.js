@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 const GAME_WIDTH = 800;
-const GAME_HEIGHT = 400;
-const WORM_SIZE = 50; 
-const COIN_SIZE = 30; 
-const OBSTACLE_SIZE = 30;
+const GAME_HEIGHT = 600;
+const WORM_SIZE = 100;
+const COIN_SIZE = 70;
+const OBSTACLE_SIZE = 70;
 const INITIAL_SPEED = 10;
 const GAME_DURATION = 120000; // 2 minutes in milliseconds
+const MIN_GAP = WORM_SIZE + 20;
 
 function App() {
   const [wormY, setWormY] = useState(GAME_HEIGHT / 2);
@@ -45,14 +46,19 @@ function App() {
       setCoins((prevCoins) => prevCoins.map(coin => ({ ...coin, x: coin.x - speed })));
       setObstacles((prevObstacles) => prevObstacles.map(obs => ({ ...obs, x: obs.x - speed })));
 
-      const newCoins = coins.filter(coin => {
+      const newCoins = coins.filter((coin) => {
         if (coin.x < 0) return false;
-        if (Math.abs(coin.x - WORM_SIZE) < COIN_SIZE && Math.abs(coin.y - wormY) < COIN_SIZE) {
+
+        if (
+          Math.abs(coin.x - WORM_SIZE) < WORM_SIZE / 2 + COIN_SIZE / 2 &&
+          Math.abs(coin.y - wormY) < WORM_SIZE / 2 + COIN_SIZE / 2
+        ) {
           setScore((prevScore) => prevScore + 1);
           return false;
         }
         return true;
       });
+
 
       if (newCoins.length !== coins.length) {
         setCoins(newCoins);
@@ -68,7 +74,19 @@ function App() {
         setCoins((prevCoins) => [...prevCoins, { x: GAME_WIDTH, y: Math.random() * (GAME_HEIGHT - COIN_SIZE) }]);
       }
       if (Math.random() < 0.01) {
-        setObstacles((prevObstacles) => [...prevObstacles, { x: GAME_WIDTH, y: Math.random() * (GAME_HEIGHT - OBSTACLE_SIZE) }]);
+        setObstacles((prevObstacles) => {
+          const newObstacleY = Math.random() * (GAME_HEIGHT - OBSTACLE_SIZE);
+
+          // Ensure the new obstacle is not too close to an existing one
+          const isValid = prevObstacles.every(
+            (obs) => Math.abs(obs.y - newObstacleY) >= MIN_GAP
+          );
+
+          if (isValid) {
+            return [...prevObstacles, { x: GAME_WIDTH, y: newObstacleY }];
+          }
+          return prevObstacles; // Skip spawning this obstacle
+        });
       }
 
       setTimeLeft((prevTime) => {

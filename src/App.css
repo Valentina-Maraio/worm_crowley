@@ -24,14 +24,12 @@
 
 .worm {
   position: absolute;
-  background-color: green;
   border-radius: 50%;
 }
 
 .coin {
   position: absolute;
-  background-color: yellow;
-  border-radius: 50%;
+  border-radius: 30%;
 }
 
 .obstacle {
