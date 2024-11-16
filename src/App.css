@@ -12,9 +12,20 @@
 .App {
   text-align: center;
   font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .game-container {
+  width: 100%;
+  max-width: 750px;
+  height: 60vh;
+  max-height: 400px;
   margin: 20px auto;
   position: relative;
   border: 2px solid #000;
@@ -22,19 +33,20 @@
   background: black;
 }
 
-.worm {
+.worm, .coin, .obstacle {
   position: absolute;
+}
+
+.worm {
   border-radius: 50%;
 }
 
 .coin {
-  position: absolute;
   border-radius: 30%;
 }
 
 .obstacle {
-  position: absolute;
-  background-color: red;
+  border-radius: 30%;
 }
 
 .game-over {
@@ -49,13 +61,48 @@
 
 .info {
   margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 750px;
 }
 
 .start-button, .restart-button {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
+  margin: 10px;
 }
-.worm, .coin {
-  position: absolute;
+
+@media (max-width: 768px) {
+  .game_title h1 {
+    font-size: 40px;
+  }
+
+  .game-container {
+    height: 50vh;
+  }
+
+  .info {
+    flex-direction: column;
+  }
+
+  .start-button, .restart-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game_title h1 {
+    font-size: 30px;
+  }
+
+  .game-container {
+    height: 40vh;
+  }
+
+  .game-over {
+    font-size: 20px;
+  }
 }

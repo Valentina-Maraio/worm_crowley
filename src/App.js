@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
-const WORM_SIZE = 100;
-const COIN_SIZE = 70;
-const OBSTACLE_SIZE = 70;
-const INITIAL_SPEED = 10;
+// Constants will now be calculated based on screen size
 const GAME_DURATION = 120000; // 2 minutes in milliseconds
-const MIN_GAP = WORM_SIZE + 20;
+const INITIAL_SPEED = 15;
+const collisionSound = new Audio('/collision.mp3');
+const gameOverSound = new Audio('/gameover.mp3');
 
 function App() {
-  const [wormY, setWormY] = useState(GAME_HEIGHT / 2);
+  const gameContainerRef = useRef(null);
+  const [gameSize, setGameSize] = useState({ width: 0, height: 0 });
+  const [wormY, setWormY] = useState(0);
   const [coins, setCoins] = useState([]);
   const [obstacles, setObstacles] = useState([]);
   const [score, setScore] = useState(0);
@@ -20,31 +19,91 @@ function App() {
   const [speed, setSpeed] = useState(INITIAL_SPEED);
   const [gameStarted, setGameStarted] = useState(false);
 
-  const moveWorm = useCallback((direction) => {
-    setWormY((prevY) => {
-      const newY = prevY + direction * 10;
-      return Math.max(0, Math.min(newY, GAME_HEIGHT - WORM_SIZE));
-    });
+  // Calculate sizes based on game container size
+  const WORM_SIZE = gameSize.width * 0.13;
+  const COIN_SIZE = gameSize.width * 0.11;
+  const OBSTACLE_SIZE = gameSize.width * 0.09;
+  const MIN_GAP = WORM_SIZE + 20;
+
+  const updateGameSize = useCallback(() => {
+    if (gameContainerRef.current) {
+      const { width, height } = gameContainerRef.current.getBoundingClientRect();
+      setGameSize({ width, height });
+      setWormY(height / 2 - WORM_SIZE / 2);
+    }
   }, []);
 
   useEffect(() => {
-    if (!gameStarted || gameOver) return;
+    updateGameSize();
+    window.addEventListener('resize', updateGameSize);
+    return () => window.removeEventListener('resize', updateGameSize);
+  }, [updateGameSize]);
 
-    const handleKeyPress = (e) => {
-      if (e.key === 'ArrowUp') moveWorm(-1);
-      if (e.key === 'ArrowDown') moveWorm(1);
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [moveWorm, gameStarted, gameOver]);
+  const moveWorm = useCallback((direction) => {
+    setWormY((prevY) => {
+      const newY = prevY + direction * 10;
+      return Math.max(0, Math.min(newY, gameSize.height - WORM_SIZE));
+    });
+  }, [gameSize.height]);
 
   useEffect(() => {
     if (!gameStarted || gameOver) return;
 
-    const gameLoop = setInterval(() => {
-      setCoins((prevCoins) => prevCoins.map(coin => ({ ...coin, x: coin.x - speed })));
-      setObstacles((prevObstacles) => prevObstacles.map(obs => ({ ...obs, x: obs.x - speed })));
+    let gameLoopInterval = null;
+    let wormMoveInterval = null;
+
+    const moveSpeed = 50;
+    const gameInterval = 100;
+    const coinMoveSpeed = speed;
+    const obstacleMoveSpeed = speed;
+
+    const minY = 0;
+    const maxY = gameSize.height - WORM_SIZE;
+
+    const handleKeyDown = (e) => {
+      if (wormMoveInterval) return;
+
+      let direction;
+      if (e.key === 'ArrowUp') direction = -1;
+      else if (e.key === 'ArrowDown') direction = 1;
+      else return;
+
+      moveWorm(direction);
+      wormMoveInterval = setInterval(() => moveWorm(direction), moveSpeed);
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        clearInterval(wormMoveInterval);
+        wormMoveInterval = null;
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      const touch = e.touches[0];
+      const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
+      const touchY = touch.clientY - gameContainerRect.top;
+      
+      if (touchY < wormY + WORM_SIZE / 2) {
+        wormMoveInterval = setInterval(() => moveWorm(-1), moveSpeed);
+      } else {
+        wormMoveInterval = setInterval(() => moveWorm(1), moveSpeed);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      clearInterval(wormMoveInterval);
+      wormMoveInterval = null;
+    };
+
+    gameLoopInterval = setInterval(() => {
+      setCoins((prevCoins) =>
+        prevCoins.map((coin) => ({ ...coin, x: coin.x - coinMoveSpeed }))
+      );
+
+      setObstacles((prevObstacles) =>
+        prevObstacles.map((obs) => ({ ...obs, x: obs.x - obstacleMoveSpeed }))
+      );
 
       const newCoins = coins.filter((coin) => {
         if (coin.x < 0) return false;
@@ -54,38 +113,46 @@ function App() {
           Math.abs(coin.y - wormY) < WORM_SIZE / 2 + COIN_SIZE / 2
         ) {
           setScore((prevScore) => prevScore + 1);
+          collisionSound.play();
           return false;
         }
         return true;
       });
 
-
       if (newCoins.length !== coins.length) {
         setCoins(newCoins);
       }
 
-      if (obstacles.some(obs =>
-        Math.abs(obs.x - WORM_SIZE) < OBSTACLE_SIZE && Math.abs(obs.y - wormY) < OBSTACLE_SIZE
-      )) {
+      if (
+        obstacles.some(
+          (obs) =>
+            Math.abs(obs.x - WORM_SIZE) < OBSTACLE_SIZE &&
+            Math.abs(obs.y - wormY) < OBSTACLE_SIZE
+        )
+      ) {
         setGameOver(true);
+        gameOverSound.play();
       }
 
       if (Math.random() < 0.02) {
-        setCoins((prevCoins) => [...prevCoins, { x: GAME_WIDTH, y: Math.random() * (GAME_HEIGHT - COIN_SIZE) }]);
+        setCoins((prevCoins) => [
+          ...prevCoins,
+          { x: gameSize.width, y: Math.random() * (gameSize.height - COIN_SIZE) },
+        ]);
       }
+
       if (Math.random() < 0.01) {
         setObstacles((prevObstacles) => {
-          const newObstacleY = Math.random() * (GAME_HEIGHT - OBSTACLE_SIZE);
+          const newObstacleY = Math.random() * (gameSize.height - OBSTACLE_SIZE);
 
-          // Ensure the new obstacle is not too close to an existing one
           const isValid = prevObstacles.every(
             (obs) => Math.abs(obs.y - newObstacleY) >= MIN_GAP
           );
 
           if (isValid) {
-            return [...prevObstacles, { x: GAME_WIDTH, y: newObstacleY }];
+            return [...prevObstacles, { x: gameSize.width, y: newObstacleY }];
           }
-          return prevObstacles; // Skip spawning this obstacle
+          return prevObstacles;
         });
       }
 
@@ -94,13 +161,26 @@ function App() {
           setGameOver(true);
           return 0;
         }
-        return prevTime - 100;
+        return prevTime - gameInterval;
       });
-      setSpeed((prevSpeed) => prevSpeed + 0.001);
-    }, 100);
 
-    return () => clearInterval(gameLoop);
-  }, [coins, obstacles, wormY, speed, gameStarted, gameOver]);
+      setSpeed((prevSpeed) => prevSpeed + 0.001);
+    }, gameInterval);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    gameContainerRef.current.addEventListener('touchstart', handleTouchStart);
+    gameContainerRef.current.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      gameContainerRef.current.removeEventListener('touchstart', handleTouchStart);
+      gameContainerRef.current.removeEventListener('touchend', handleTouchEnd);
+      clearInterval(wormMoveInterval);
+      clearInterval(gameLoopInterval);
+    };
+  }, [coins, obstacles, wormY, speed, gameStarted, gameOver, gameSize, moveWorm]);
 
   const startGame = () => {
     setGameStarted(true);
@@ -110,7 +190,7 @@ function App() {
     setScore(0);
     setTimeLeft(GAME_DURATION);
     setSpeed(INITIAL_SPEED);
-    setWormY(GAME_HEIGHT / 2);
+    setWormY(gameSize.height / 2 - WORM_SIZE / 2);
   };
 
   return (
@@ -121,28 +201,34 @@ function App() {
           Start Game
         </button>
       )}
-      <div className="game-container" style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}>
+      <div ref={gameContainerRef} className="game-container">
         {gameStarted && !gameOver ? (
           <>
             <video
-              src="/worm.webm" // Replace with the path to your worm.webm file
+              src="/worm.webm"
               className="worm"
               style={{ left: 0, top: wormY, width: WORM_SIZE, height: WORM_SIZE }}
               autoPlay
               loop
-              muted // Ensures no sound plays if the .webm file includes audio
+              muted
             ></video>
             {coins.map((coin, index) => (
               <img
                 key={index}
-                src="/aziraphale.png" // Replace with the path to your coin image
+                src="/aziraphale.png"
                 alt="Coin"
                 className="coin"
                 style={{ left: coin.x, top: coin.y, width: COIN_SIZE, height: COIN_SIZE }}
               />
             ))}
             {obstacles.map((obs, index) => (
-              <div key={index} className="obstacle" style={{ left: obs.x, top: obs.y, width: OBSTACLE_SIZE, height: OBSTACLE_SIZE }}></div>
+              <img
+                key={index}
+                className="obstacle"
+                style={{ left: obs.x, top: obs.y, width: OBSTACLE_SIZE, height: OBSTACLE_SIZE }}
+                src="/metatron.png"
+                alt="Obstacle"
+              />
             ))}
           </>
         ) : gameOver ? (
