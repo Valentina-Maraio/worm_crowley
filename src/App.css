@@ -1,0 +1,63 @@
+.game_title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game_title h1 {
+  color: orange;
+  font-size: 70px;
+}
+
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.game-container {
+  margin: 20px auto;
+  position: relative;
+  border: 2px solid #000;
+  overflow: hidden;
+  background: black;
+}
+
+.worm {
+  position: absolute;
+  background-color: green;
+  border-radius: 50%;
+}
+
+.coin {
+  position: absolute;
+  background-color: yellow;
+  border-radius: 50%;
+}
+
+.obstacle {
+  position: absolute;
+  background-color: red;
+}
+
+.game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  color: red;
+}
+
+.info {
+  margin-top: 20px;
+}
+
+.start-button, .restart-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.worm, .coin {
+  position: absolute;
+}
