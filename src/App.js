@@ -83,7 +83,7 @@ function App() {
       const touch = e.touches[0];
       const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
       const touchY = touch.clientY - gameContainerRect.top;
-      
+
       if (touchY < wormY + WORM_SIZE / 2) {
         wormMoveInterval = setInterval(() => moveWorm(-1), moveSpeed);
       } else {
@@ -244,6 +244,14 @@ function App() {
         <p>Score: {score}</p>
         <p>Time Left: {Math.ceil(timeLeft / 1000)}s</p>
       </div>
+      
+      {/* Mobile Controls */}
+      {gameStarted && !gameOver && (
+        <div className="controls">
+          <button className="control-button" onClick={() => moveWorm(-1)}>Up</button>
+          <button className="control-button" onClick={() => moveWorm(1)}>Down</button>
+        </div>
+      )}
     </div>
   );
 }

@@ -74,6 +74,24 @@
   margin: 10px;
 }
 
+.controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.control-button {
+  background-color: gray;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  padding: 15px;
+  margin: 0 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+
 @media (max-width: 768px) {
   .game_title h1 {
     font-size: 40px;
