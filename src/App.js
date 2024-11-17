@@ -3,7 +3,7 @@ import './App.css';
 
 // Constants will now be calculated based on screen size
 const GAME_DURATION = 120000; // 2 minutes in milliseconds
-const INITIAL_SPEED = 15;
+const INITIAL_SPEED = 18;
 const collisionSound = new Audio('/collision.mp3');
 const gameOverSound = new Audio('/gameover.mp3');
 
@@ -29,7 +29,8 @@ function App() {
     if (gameContainerRef.current) {
       const { width, height } = gameContainerRef.current.getBoundingClientRect();
       setGameSize({ width, height });
-      setWormY(height / 2 - WORM_SIZE / 2);
+      const calculatedWormSize = width * 0.13; // Calculate WORM_SIZE here
+      setWormY(height / 2 - calculatedWormSize / 2);
     }
   }, []);
 
@@ -44,21 +45,19 @@ function App() {
       const newY = prevY + direction * 10;
       return Math.max(0, Math.min(newY, gameSize.height - WORM_SIZE));
     });
-  }, [gameSize.height]);
+  }, [gameSize.height, WORM_SIZE]);
 
   useEffect(() => {
     if (!gameStarted || gameOver) return;
-
+    const gameContainer = gameContainerRef.current; 
     let gameLoopInterval = null;
     let wormMoveInterval = null;
 
-    const moveSpeed = 50;
+    const moveSpeed = 20;
     const gameInterval = 100;
     const coinMoveSpeed = speed;
     const obstacleMoveSpeed = speed;
 
-    const minY = 0;
-    const maxY = gameSize.height - WORM_SIZE;
 
     const handleKeyDown = (e) => {
       if (wormMoveInterval) return;
@@ -95,6 +94,9 @@ function App() {
       clearInterval(wormMoveInterval);
       wormMoveInterval = null;
     };
+
+    gameContainer.addEventListener('touchstart', handleTouchStart);
+    gameContainer.addEventListener('touchend', handleTouchEnd);
 
     gameLoopInterval = setInterval(() => {
       setCoins((prevCoins) =>
@@ -175,12 +177,12 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      gameContainerRef.current.removeEventListener('touchstart', handleTouchStart);
-      gameContainerRef.current.removeEventListener('touchend', handleTouchEnd);
+      gameContainer.addEventListener('touchstart', handleTouchStart);
+      gameContainer.addEventListener('touchend', handleTouchEnd);
       clearInterval(wormMoveInterval);
       clearInterval(gameLoopInterval);
     };
-  }, [coins, obstacles, wormY, speed, gameStarted, gameOver, gameSize, moveWorm]);
+  }, [coins, obstacles, wormY, speed, gameStarted, gameOver, gameSize, moveWorm, MIN_GAP, COIN_SIZE, OBSTACLE_SIZE, WORM_SIZE]);
 
   const startGame = () => {
     setGameStarted(true);
@@ -204,14 +206,12 @@ function App() {
       <div ref={gameContainerRef} className="game-container">
         {gameStarted && !gameOver ? (
           <>
-            <video
-              src="/worm.webm"
+            <img
+              src="/worm.gif"
               className="worm"
               style={{ left: 0, top: wormY, width: WORM_SIZE, height: WORM_SIZE }}
-              autoPlay
-              loop
-              muted
-            ></video>
+              alt="Worm Crowley"
+            />
             {coins.map((coin, index) => (
               <img
                 key={index}
@@ -244,7 +244,7 @@ function App() {
         <p>Score: {score}</p>
         <p>Time Left: {Math.ceil(timeLeft / 1000)}s</p>
       </div>
-      
+
       {/* Mobile Controls */}
       {gameStarted && !gameOver && (
         <div className="controls">
