@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
 // Constants will now be calculated based on screen size
-const GAME_DURATION = 120000; // 2 minutes in milliseconds
+const GAME_DURATION = 60000; // 2 minutes in milliseconds
 const INITIAL_SPEED = 15;
 const collisionSound = new Audio('/collision.mp3');
 const gameOverSound = new Audio('/gameover.mp3');
