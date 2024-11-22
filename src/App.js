@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
 // Constants will now be calculated based on screen size
-const GAME_DURATION = 6000; // 2 minutes in milliseconds
+const GAME_DURATION = 60000; // 2 minutes in milliseconds
 const INITIAL_SPEED = 15;
 const collisionSound = new Audio('/collision.mp3');
 const gameOverSound = new Audio('/gameover.mp3');
+const gameWonSound = new Audio('/youwon.mp3')
 
 function App() {
   const gameContainerRef = useRef(null);
@@ -18,6 +19,7 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [speed, setSpeed] = useState(INITIAL_SPEED);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameWon, setGameWon] = useState(false);
 
   // Calculate sizes based on game container size
   const WORM_SIZE = gameSize.width * 0.13;
@@ -160,6 +162,8 @@ function App() {
 
       setTimeLeft((prevTime) => {
         if (prevTime <= 0) {
+          setGameWon(true);
+          gameWonSound.play();
           setGameOver(true);
           return 0;
         }
@@ -233,7 +237,7 @@ function App() {
           </>
         ) : gameOver ? (
           <>
-            <div className="game-over">Game Over!</div>
+            <div className="game-over" style={{ color: gameWon ? 'green' : 'red' }}>{gameWon ? "You won!" : "Game Over!"}</div>
             <button className="restart-button" onClick={startGame}>
               Restart Game
             </button>
