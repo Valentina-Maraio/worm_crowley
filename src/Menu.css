@@ -1,0 +1,23 @@
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    background: white;
+    color: black;
+    z-index: 1000;
+    height: 37px;
+}
+
+.social {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .icon {
+    color: black;
+    text-decoration: none;
+    margin-top: 6px;
+  }

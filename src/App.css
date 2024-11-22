@@ -83,9 +83,7 @@
 }
 
 .controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
+  display: none;
 }
 
 .control-button {
@@ -112,7 +110,7 @@
   }
 
   .info {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .start-button, .restart-button {
@@ -133,6 +131,26 @@
   .info {
     max-width: 550px;
     color: white;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .control-button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    background-color: #d4af37;
+    color: black;
+    border: none;
+    border-radius: 5px;
+  }
+
+  .control-button:hover {
+    background-color: #ffd700;
   }
 }
 
@@ -162,5 +180,25 @@
   .info {
     max-width: 550px;
     color: white;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .control-button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    background-color: #d4af37;
+    color: black;
+    border: none;
+    border-radius: 5px;
+  }
+
+  .control-button:hover {
+    background-color: #ffd700;
   }
 }
