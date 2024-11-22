@@ -102,7 +102,7 @@
 
 @media (max-width: 768px) {
   .game_title h1 {
-    font-size: 20px;
+    font-size: 40px;
   }
 
   .game-container {
@@ -156,11 +156,11 @@
 
 @media (max-width: 480px) {
   .game_title h1 {
-    font-size: 20px;
+    font-size: 30px;
   }
 
   .game-container {
-    height: 30vh;
+    height: 40vh;
   }
 
   .game-over {
