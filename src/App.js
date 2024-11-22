@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
+import Menu from './Menu';
 
 // Constants will now be calculated based on screen size
 const GAME_DURATION = 60000; // 2 minutes in milliseconds
@@ -51,7 +52,7 @@ function App() {
 
   useEffect(() => {
     if (!gameStarted || gameOver) return;
-    const gameContainer = gameContainerRef.current; 
+    const gameContainer = gameContainerRef.current;
     let gameLoopInterval = null;
     let wormMoveInterval = null;
 
@@ -256,6 +257,9 @@ function App() {
           <button className="control-button" onClick={() => moveWorm(1)}>Down</button>
         </div>
       )}
+      <>
+        <Menu />
+      </>
     </div>
   );
 }
